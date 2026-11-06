@@ -1,0 +1,284 @@
+
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pink Light Woman</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+</style>
+</head>
+<body>
+<canvas id="art"></canvas>
+
+<script>
+const canvas = document.getElementById("art");
+const ctx = canvas.getContext("2d");
+
+let w, h, time = 0;
+
+function resize() {
+  w = canvas.width = innerWidth * devicePixelRatio;
+  h = canvas.height = innerHeight * devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  w = innerWidth;
+  h = innerHeight;
+}
+resize();
+addEventListener("resize", resize);
+
+const pink = "#ff4ebd";
+const white = "#ffe9fa";
+
+function glowLine(points, color, width, blur=15) {
+  ctx.beginPath();
+  ctx.moveTo(points[0][0],points[0][1]);
+
+  for(let i=1;i<points.length-1;i++){
+    const mx=(points[i][0]+points[i+1][0])/2;
+    const my=(points[i][1]+points[i+1][1])/2;
+    ctx.quadraticCurveTo(
+      points[i][0],points[i][1],mx,my
+    );
+  }
+
+  const last=points[points.length-1];
+  ctx.lineTo(last[0],last[1]);
+
+  ctx.strokeStyle=color;
+  ctx.lineWidth=width;
+  ctx.shadowColor=color;
+  ctx.shadowBlur=blur;
+  ctx.stroke();
+  ctx.shadowBlur=0;
+}
+
+function curve(points,color,width=1,blur=12){
+  glowLine(points,color,width,blur);
+}
+
+function drawHead(cx,cy,s) {
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(s,s);
+
+  // فرم صورت
+  curve([
+    [20,-115],[70,-100],[91,-60],
+    [94,-20],[80,18],[74,52],
+    [58,80],[32,100],[4,104],
+    [-22,95]
+  ],white,2.2,25);
+
+  // بینی و لب
+  curve([
+    [78,0],[89,20],[83,34],
+    [72,40]
+  ],pink,1.5,15);
+
+  curve([
+    [72,51],[58,58],[46,54],
+    [37,58]
+  ],white,1.8,18);
+
+  // چشم نورانی
+  ctx.beginPath();
+  ctx.ellipse(65,-12,3,7,-0.4,0,Math.PI*2);
+  ctx.fillStyle=white;
+  ctx.shadowColor=pink;
+  ctx.shadowBlur=25;
+  ctx.fill();
+
+  // موهای جلوی سر
+  for(let i=0;i<22;i++){
+    const x=-90+i*7;
+    const wave=Math.sin(i*.35+time*.6)*12;
+
+    curve([
+      [x,-110],
+      [x+35,-155+wave],
+      [x+85,-130+wave],
+      [x+115,-85+i*1.5]
+    ],i%3===0?white:pink,.8,12);
+  }
+
+  // موهای بلند
+  for(let i=0;i<28;i++){
+    const x=-75+i*5;
+    const sway=Math.sin(time*.7+i*.3)*12;
+
+    curve([
+      [x,-90],
+      [x-35,0+sway],
+      [x-70,100+sway],
+      [x-50+Math.sin(time+i)*20,220],
+      [x-95,350]
+    ],i%4===0?white:pink,
+    i%5===0?2:0.8,18);
+  }
+
+  // خطوط داخلی مو
+  for(let i=0;i<15;i++){
+    curve([
+      [-65+i*5,-95],
+      [-20+i*4,-40],
+      [-40+i*6,50],
+      [-15+i*7,150],
+      [-50+i*5,250]
+    ],pink,.7,10);
+  }
+
+  ctx.restore();
+}
+
+function drawBody(cx,cy,s){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.scale(s,s);
+
+  // گردن
+  curve([
+    [5,85],[0,130],[15,165],
+    [35,190]
+  ],white,2,22);
+
+  curve([
+    [65,80],[75,130],[90,165],
+    [120,185]
+  ],pink,1.5,20);
+
+  // شانه و بدن
+  curve([
+    [-90,230],[-55,195],[0,180],
+    [60,190],[115,220],[145,280]
+  ],white,2,25);
+
+  curve([
+    [-90,230],[-110,300],[-105,380],
+    [-80,480]
+  ],pink,1.8,20);
+
+  curve([
+    [145,280],[170,360],[160,430],
+    [125,500]
+  ],white,2,22);
+
+  // خطوط ظریف بدن
+  for(let i=0;i<18;i++){
+    const offset=i*8;
+    curve([
+      [-95+offset*.2,230+offset],
+      [-40+offset*.4,280+offset],
+      [35+offset*.3,290+offset],
+      [100+offset*.2,260+offset]
+    ],i%4===0?white:pink,.7,12);
+  }
+
+  ctx.restore();
+}
+
+function drawOrbit(cx,cy,r,rotation){
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(rotation);
+
+  for(let i=0;i<5;i++){
+    ctx.beginPath();
+    ctx.ellipse(
+      0,0,
+      r+i*13,
+      r*.28+i*4,
+      i*.12,
+      0,Math.PI*2
+    );
+    ctx.strokeStyle=i%2===0?
+      "rgba(255,85,190,.65)":
+      "rgba(255,230,250,.55)";
+    ctx.lineWidth=i===0?1.8:.8;
+    ctx.shadowColor=pink;
+    ctx.shadowBlur=16;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+  ctx.shadowBlur=0;
+}
+
+function drawParticles(){
+  for(let i=0;i<85;i++){
+    const x=(Math.sin(i*123.4+time*.15)*.5+.5)*w;
+    const y=(Math.sin(i*53.2+time*.22)*.5+.5)*h;
+    const r=1+Math.sin(time+i)*.7;
+
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=i%3===0?white:pink;
+    ctx.shadowColor=pink;
+    ctx.shadowBlur=12;
+    ctx.fill();
+  }
+  ctx.shadowBlur=0;
+}
+
+function animate(){
+  time+=.012;
+  ctx.clearRect(0,0,w,h);
+
+  const cx=w*.52;
+  const cy=h*.36;
+  const scale=Math.min(w/440,h/850)*1.25;
+
+  // هاله صورتی
+  const halo=ctx.createRadialGradient(
+    cx,cy,10,cx,cy,Math.min(w,h)*.55
+  );
+  halo.addColorStop(0,"rgba(255,20,150,.13)");
+  halo.addColorStop(.5,"rgba(120,0,80,.035)");
+  halo.addColorStop(1,"rgba(0,0,0,0)");
+
+  ctx.fillStyle=halo;
+  ctx.fillRect(0,0,w,h);
+
+  drawParticles();
+
+  drawOrbit(cx,cy-100*scale,150*scale,time*.3);
+
+  drawHead(cx,cy,scale);
+  drawBody(cx,cy,scale);
+
+  // خطوط آزاد نورانی اطراف پیکره
+  for(let i=0;i<12;i++){
+    const a=time*.35+i*.52;
+    const rx=170*scale+i*5;
+    const ry=250*scale+i*6;
+
+    curve([
+      [cx+Math.cos(a)*rx,cy+Math.sin(a)*ry],
+      [cx+Math.cos(a+1)*rx*.8,cy+Math.sin(a+1)*ry*.8],
+      [cx+Math.cos(a+2)*rx,cy+Math.sin(a+2)*ry]
+    ],i%3===0?white:pink,.8,16);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+</body>
+</html>
